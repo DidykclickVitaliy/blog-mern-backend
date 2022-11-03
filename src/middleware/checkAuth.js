@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export default (request, response, next) => {
-  const token = (request.headers.authorization || "").replace(/Bearer\s?/, "");
+  const token = (request.headers.authorization || "").replace(/Bearer\s?/, ""); //split(' ')[1]
 
   if (token) {
     try {

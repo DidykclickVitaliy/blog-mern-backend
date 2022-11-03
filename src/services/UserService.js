@@ -49,6 +49,16 @@ export const login = async (request, response) => {
 
 export const register = async (request, response) => {
   try {
+    const existingEmail = await UserModel.findOne({
+      email: request.body.email,
+    });
+
+    if (existingEmail) {
+      return response.status(409).json({
+        message: "This email is already registered",
+      });
+    }
+
     const password = request.body.password;
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
@@ -60,7 +70,7 @@ export const register = async (request, response) => {
       avatarUrl: request.body.avatarUrl,
     });
 
-    const user = doc.save();
+    const user = await doc.save();
 
     const token = jwt.sign(
       {
