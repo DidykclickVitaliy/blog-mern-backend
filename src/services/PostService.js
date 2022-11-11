@@ -2,10 +2,13 @@ import PostModel from "../models/Post.js";
 
 export const getAllPosts = async (request, response) => {
   try {
-    const posts = await PostModel.find().populate("user").exec();
+    const posts = await PostModel.find()
+      .populate("user", "-passwordHash")
+      .exec();
 
     return response.json(posts);
   } catch (error) {
+    console.log(error);
     return response.status(500).json({
       message: "Failed to get articles",
     });
@@ -42,8 +45,17 @@ export const getOnePost = (request, response) => {
 
         return response.json(doc);
       }
-    ).populate("user");
+    )
+      .populate("user", "-passwordHash")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "user",
+          select: "-passwordHash",
+        },
+      });
   } catch (error) {
+    console.log(error);
     return response.status(500).json({
       message: "Failed to get article",
     });
@@ -62,10 +74,10 @@ export const createPost = async (request, response) => {
 
     const post = await doc.save();
 
-    response.json(post);
+    return response.json(post);
   } catch (error) {
     console.log(error);
-    response.status(500).json({
+    return response.status(500).json({
       message: "Failed to create article",
     });
   }
@@ -99,6 +111,7 @@ export const removePost = (request, response) => {
       }
     );
   } catch (error) {
+    console.log(error);
     return response.status(500).json({
       message: "Cannot remove article",
     });
@@ -126,6 +139,7 @@ export const updatePost = async (request, response) => {
       success: true,
     });
   } catch (error) {
+    console.log(error);
     return response.status(500).json({
       message: "Failed to update article",
     });
@@ -143,8 +157,26 @@ export const getLastTags = async (request, response) => {
 
     return response.json(tags);
   } catch (error) {
+    console.log(error);
     return response.status(500).json({
       message: "Failed to get tags",
+    });
+  }
+};
+
+export const getPostsByTag = async (request, response) => {
+  try {
+    const tag = request.params.tag;
+    const posts = await PostModel.find({ tags: tag })
+      .populate("user", "-passwordHash")
+      .populate("comments")
+      .exec();
+
+    return response.json(posts);
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      message: "Failed to get posts by tags",
     });
   }
 };
