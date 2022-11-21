@@ -1,45 +1,34 @@
 import CommentModel from "../models/Comment.js";
 import PostModel from "../models/Post.js";
 
-export const createComment = async (request, response) => {
-  try {
-    const postId = request.params.id;
+class CommentService {
+  async createComment(comment) {
+    const { text, postId, userId } = comment;
 
     const doc = new CommentModel({
-      text: request.body.text,
+      text,
       post: postId,
-      user: request.userId,
+      user: userId,
     });
-
-    const comment = await doc.save();
+    const createdComment = await doc.save();
 
     const postRelated = await PostModel.findById(postId);
-
-    postRelated.comments.push(comment);
+    postRelated.comments.push(createdComment);
     const post = await postRelated.save();
 
-    return response.json(post.comments);
-  } catch (error) {
-    console.log(error);
+    const postComments = post.comments;
 
-    return response.status(500).json({
-      message: "Failed to add comment",
-    });
+    return postComments;
   }
-};
 
-export const getLastComments = async (request, response) => {
-  try {
+  async getLastComments() {
     const comments = await CommentModel.find()
       .populate("user", "-passwordHash")
       .exec();
 
     const lastComments = comments.slice(-5);
-    return response.json(lastComments);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to retrieve a last comments",
-    });
+    return lastComments;
   }
-};
+}
+
+export default new CommentService();

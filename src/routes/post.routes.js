@@ -1,40 +1,39 @@
 import express from "express";
 
-import {
-  createPost,
-  getAllPosts,
-  getLastTags,
-  getOnePost,
-  removePost,
-  updatePost,
-  getPostsByTag,
-} from "../controllers/PostController.js";
-import {
-  createComment,
-  getLastComments,
-} from "../controllers/CommentController.js";
+import CommentController from "../controllers/CommentController.js";
+import PostController from "../controllers/PostController.js";
 import { checkAuth, handleValidationErrors } from "../middleware/index.js";
 import { postCreateValidation } from "../validations/index.js";
 
 const router = express.Router();
 
-router.get("", getAllPosts);
-router.get("/tags", getLastTags);
-router.get("/comments", getLastComments);
-router.get("/tags/:tag", getPostsByTag);
-router.get("/:id", getOnePost);
+router.get("", PostController.getAllPosts);
+router.get("/tags", PostController.getLastTags);
+router.get("/comments", CommentController.getLastComments);
+router.get("/tags/:tag", PostController.getPostsByTag);
+router.get("/:id", PostController.getOnePost);
 
 router.post(
   "",
   checkAuth,
   postCreateValidation,
   handleValidationErrors,
-  createPost
+  PostController.createPost
 );
-router.post("/:id/comments", checkAuth, handleValidationErrors, createComment);
+router.post(
+  "/:id/comments",
+  checkAuth,
+  handleValidationErrors,
+  CommentController.createComment
+);
 
-router.patch("/:id", checkAuth, handleValidationErrors, updatePost);
+router.patch(
+  "/:id",
+  checkAuth,
+  handleValidationErrors,
+  PostController.updatePost
+);
 
-router.delete("/:id", checkAuth, removePost);
+router.delete("/:id", checkAuth, PostController.removePost);
 
 export default router;
