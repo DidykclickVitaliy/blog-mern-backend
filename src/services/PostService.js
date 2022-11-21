@@ -1,153 +1,37 @@
 import PostModel from "../models/Post.js";
 
-export const getAllPosts = async (request, response) => {
-  try {
+class PostService {
+  async getAllPosts() {
     const posts = await PostModel.find()
       .populate("user", "-passwordHash")
       .exec();
 
-    return response.json(posts);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to get articles",
-    });
+    return posts;
   }
-};
 
-export const getOnePost = (request, response) => {
-  try {
-    const postId = request.params.id;
+  async createPost(params) {
+    const { title, text, tags, imageUrl, user } = params;
 
-    PostModel.findOneAndUpdate(
-      {
-        _id: postId,
-      },
-      {
-        $inc: { viewsCount: 1 },
-      },
-      {
-        returnDocument: "after",
-      },
-      (err, doc) => {
-        if (err) {
-          console.log(err);
-          return response.status(500).json({
-            message: "Failed to retrieve article",
-          });
-        }
-
-        if (!doc) {
-          return response.status(404).json({
-            message: "Failed to find article",
-          });
-        }
-
-        return response.json(doc);
-      }
-    )
-      .populate("user", "-passwordHash")
-      .populate({
-        path: "comments",
-        populate: {
-          path: "user",
-          select: "-passwordHash",
-        },
-      });
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to get article",
-    });
-  }
-};
-
-export const createPost = async (request, response) => {
-  try {
-    const doc = new PostModel({
-      title: request.body.title,
-      text: request.body.text,
-      tags: request.body.tags,
-      imageUrl: request.body.imageUrl,
-      user: request.userId,
-    });
-
+    const doc = new PostModel({ title, text, tags, imageUrl, user });
     const post = await doc.save();
 
-    return response.json(post);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to create article",
-    });
+    return post;
   }
-};
 
-export const removePost = (request, response) => {
-  try {
-    const postId = request.params.id;
+  async updatePost(params) {
+    const { postId, title, text, imageUrl, user, tags } = params;
 
-    PostModel.findOneAndDelete(
+    const post = await PostModel.updateOne(
       {
         _id: postId,
       },
-      (err, doc) => {
-        if (err) {
-          return response.status(500).json({
-            message: "Failed to delete article",
-          });
-        }
-
-        if (!doc) {
-          return response.status(404).json({
-            message: "Failed to find article",
-          });
-        }
-
-        return response.json({
-          success: true,
-          postId,
-        });
-      }
-    );
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Cannot remove article",
-    });
-  }
-};
-
-export const updatePost = async (request, response) => {
-  try {
-    const postId = request.params.id;
-
-    await PostModel.updateOne(
-      {
-        _id: postId,
-      },
-      {
-        title: request.body.title,
-        text: request.body.text,
-        imageUrl: request.body.imageUrl,
-        user: request.userId,
-        tags: request.body.tags,
-      }
+      { title, text, imageUrl, user, tags }
     );
 
-    return response.json({
-      success: true,
-    });
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to update article",
-    });
+    return post;
   }
-};
 
-export const getLastTags = async (request, response) => {
-  try {
+  async getLastTags() {
     const posts = await PostModel.find().limit(5).exec();
 
     const tags = posts
@@ -155,28 +39,17 @@ export const getLastTags = async (request, response) => {
       .flat()
       .slice(0, 5);
 
-    return response.json(tags);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to get tags",
-    });
+    return tags;
   }
-};
 
-export const getPostsByTag = async (request, response) => {
-  try {
-    const tag = request.params.tag;
+  async getPostsByTag(tag) {
     const posts = await PostModel.find({ tags: tag })
       .populate("user", "-passwordHash")
       .populate("comments")
       .exec();
 
-    return response.json(posts);
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: "Failed to get posts by tags",
-    });
+    return posts;
   }
-};
+}
+
+export default new PostService();

@@ -55,8 +55,6 @@ class UserController {
       const email = request.body.email;
       const existingEmail = await UserService.getExistingEmail(email);
 
-      console.log(existingEmail);
-
       if (existingEmail) {
         return response.status(409).json({
           message: "This email is already registered",
