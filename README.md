@@ -5,6 +5,7 @@
 # On the backend, a rest api was developed for interacting with the client on React, creating users and posts, commenting on these posts, authentication.
 
 # 🛠 Technologies
+- **TypeScript**
 - **NodeJS**
 - **Express**
 - **Express validator**
